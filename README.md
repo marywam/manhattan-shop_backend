@@ -11,7 +11,7 @@ Follow these steps to clone the repository and run the server on your local mach
 ```bash
 git clone https://github.com/marywam/manhattan-shop_backend.git
 
-cd Agri-Records-Backend
+cd manhattan-shop
 
 ```
 
@@ -22,8 +22,8 @@ python3 -m venv <your-env-name>
 source <your-env-name>/bin/activate
 
 # 👉 **Example**
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv virtual
+source virtual/bin/activate
 
 ```
 
@@ -44,16 +44,16 @@ pip install django
 ### 5. Create the Django project
 
 ```bash
-python -m django startproject agritech
+python -m django startproject shoptech
 
-cd agritech
+cd shoptech
 
 ```
 
 ### 6. Create a Django app
 
 ```bash
-django-admin startapp agriTechApp
+django-admin startapp shoptechApp
 
 ```
 
@@ -83,7 +83,7 @@ INSTALLED_APPS = [
     # other default apps...
     'rest_framework',
     'corsheaders',
-    'agriTechApp',
+    'shoptechApp',
 ]
 
 MIDDLEWARE = [
