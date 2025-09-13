@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from .models import *
 
 
 User = get_user_model()
@@ -80,3 +81,49 @@ class LoginSerializer(serializers.Serializer):
                 "role": user.role,
             },
         }
+        
+
+class ProductSerializer(serializers.ModelSerializer):
+    discounted_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "name",
+            "image1",
+            "image2",
+            "image3",
+            "image4",
+            "price",
+            "discount",
+            "discounted_price",
+            "description",
+            "date_posted",
+        ]
+
+    def get_discounted_price(self, obj):
+        if obj.discount is not None and obj.discount > 0:
+            return obj.price - (obj.price * obj.discount / 100)
+        return None
+    
+    
+class CartItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+    product_id = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(), source="product", write_only=True
+    )
+
+    class Meta:
+        model = CartItem
+        fields = ["id", "product", "product_id", "quantity", "total_price"]
+
+
+class CartSerializer(serializers.ModelSerializer):
+    items = CartItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Cart
+        fields = ["id", "buyer", "items", "created_at"]
+        read_only_fields = ["buyer", "created_at"]
+
