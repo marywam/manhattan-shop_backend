@@ -1,6 +1,7 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import *
+from . import views
 
 urlpatterns = [
     # Buyer registration
@@ -24,4 +25,9 @@ urlpatterns = [
     # Cart (Buyer only)
     path("cart/", CartViewSet.as_view({"get": "list", "post": "create"}), name="cart"),
     path("cart/<int:pk>/", CartViewSet.as_view({"put": "update", "delete": "destroy"}), name="cart-item"),
+    
+    
+    path("payment/", views.payment_view, name="payment"),
 ]
+
+

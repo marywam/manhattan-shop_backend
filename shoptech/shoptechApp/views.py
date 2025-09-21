@@ -6,6 +6,12 @@ from .serializers import *
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+import requests
+import base64
+from datetime import datetime
+from django.conf import settings
+from rest_framework.decorators import api_view
+
 
 User = get_user_model()
 
@@ -104,3 +110,62 @@ class CartViewSet(viewsets.ViewSet):
 
         serializer = CartSerializer(cart)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+def payment_view(request):
+    phone_number = request.data.get("phone_number")
+    amount = request.data.get("amount")
+
+    if not phone_number or not amount:
+        return Response({"error": "Phone number and amount are required"}, status=400)
+
+    # Safaricom credentials
+    consumer_key = settings.MPESA_CONSUMER_KEY
+    consumer_secret = settings.MPESA_CONSUMER_SECRET
+    shortcode = settings.MPESA_SHORTCODE
+    passkey = settings.MPESA_PASSKEY
+
+    # 1. Get access token
+    token_url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
+    r = requests.get(token_url, auth=(consumer_key, consumer_secret))
+    if r.status_code != 200:
+        return Response({"error": "Failed to get access token", "details": r.json()}, status=500)
+
+    access_token = r.json().get("access_token")
+
+    # 2. Generate password
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    data_to_encode = shortcode + passkey + timestamp
+    password = base64.b64encode(data_to_encode.encode()).decode("utf-8")
+
+    # 3. STK Push request
+    stk_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    payload = {
+        "BusinessShortCode": shortcode,
+        "Password": password,
+        "Timestamp": timestamp,
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": amount,
+        "PartyA": phone_number,
+        "PartyB": shortcode,
+        "PhoneNumber": phone_number,
+        "CallBackURL": "https://7adcf57cb017.ngrok-free.app/api/mpesa/callback/",
+        "AccountReference": "Test123",
+        "TransactionDesc": "Payment"
+    }
+
+    response = requests.post(stk_url, json=payload, headers=headers)
+    res_data = response.json()
+
+    # 4. Save transaction (only if request accepted)
+    if res_data.get("ResponseCode") == "0":
+        Transaction.objects.create(
+            amount=amount,
+            checkout_id=res_data.get("CheckoutRequestID"),
+            phone_number=phone_number,
+            status="pending"
+        )
+
+    return Response(res_data, status=response.status_code)
