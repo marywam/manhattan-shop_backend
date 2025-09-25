@@ -3,6 +3,8 @@ from django.db import models
 from datetime import date
 from django.utils import timezone
 from django.conf import settings
+import uuid
+
 
 
 class UserManager(BaseUserManager):
@@ -59,28 +61,55 @@ class User(AbstractUser):
         return f"{self.email} ({self.role})"
 
 
+PRODUCT_GROUPS = [
+    ("rings", "Rings"),
+    ("necklaces", "Necklaces"),
+    ("bangles", "Bangles"),
+    ("earrings", "Earrings"),
+]
+
+def generate_product_code():
+    return "PRD-" + uuid.uuid4().hex[:8].upper()
+
 class Product(models.Model):
+    product_code = models.CharField(
+        max_length=50, unique=True, default=generate_product_code, editable=False
+    )
     name = models.CharField(max_length=255)
-    image1 = models.ImageField(upload_to='products/')
-    image2 = models.ImageField(upload_to='products/', blank=True, null=True)
-    image3 = models.ImageField(upload_to='products/', blank=True, null=True)
-    image4 = models.ImageField(upload_to='products/', blank=True, null=True)
+    group = models.CharField(max_length=50, choices=PRODUCT_GROUPS, default="rings")
+    collection = models.CharField(max_length=100, blank=True, null=True)
+    color = models.CharField(max_length=50, blank=True, null=True)
+    size = models.CharField(max_length=50, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    discount = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, help_text="Discount in %")
-    description = models.TextField()
+
+    # store the discounted price directly
+    discount_price = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True, help_text="Discounted price"
+    )
+
+    stock = models.PositiveIntegerField(default=0)
+    best_seller = models.BooleanField(default=False)
+
+    description = models.TextField(blank=True, null=True)
+    image1 = models.ImageField(upload_to="products/")
+    image2 = models.ImageField(upload_to="products/", blank=True, null=True)
+    image3 = models.ImageField(upload_to="products/", blank=True, null=True)
+    image4 = models.ImageField(upload_to="products/", blank=True, null=True)
     date_posted = models.DateTimeField(default=timezone.now, editable=False)
-    posted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="products")
+    posted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="products"
+    )
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.product_code})"
 
     @property
-    def discounted_price(self):
-      if self.discount is not None and self.discount > 0:
-        return self.price - (self.price * self.discount / 100)
-      return None
-  
-  
+    def discount_percentage(self):
+        """Return percentage discount based on price and discount_price."""
+        if self.price and self.discount_price and self.discount_price < self.price:
+            return float(((self.price - self.discount_price) / self.price) * 100)
+        return 0.0
+
   
 class Cart(models.Model):
     buyer = models.OneToOneField(
@@ -126,6 +155,16 @@ class Transaction(models.Model):
     
     def __str__(self):
         return f"{self.mpesa_code} - {self.amount} KES" 
+    
+    
+class ContactUs(models.Model):
+    full_name = models.CharField(max_length=100)
+    phone_number = models.CharField(max_length=20)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.full_name} - {self.phone_number}"
     
     
     

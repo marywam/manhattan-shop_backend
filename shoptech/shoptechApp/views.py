@@ -11,6 +11,7 @@ import base64
 from datetime import datetime
 from django.conf import settings
 from rest_framework.decorators import api_view
+from rest_framework.views import APIView
 
 
 User = get_user_model()
@@ -32,35 +33,58 @@ class LoginView(generics.GenericAPIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-# Admin-only product creation
+
+# Admin: create product
 class ProductCreateView(generics.CreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [permissions.IsAdminUser]  # Admin must be logged in
+    permission_classes = [permissions.IsAdminUser]
 
     def perform_create(self, serializer):
         serializer.save(posted_by=self.request.user)
 
-
-# Admin-only: retrieve, update, delete a product
+# Admin: retrieve/update/delete by product_code
 class ProductDetailAdminView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [permissions.IsAdminUser]  # Admin must be logged in
+    permission_classes = [permissions.IsAdminUser]
+    lookup_field = "product_code"
 
-
-# Public: List all products for buyers (no login required)
+# Public: list products with optional group filter
 class ProductListView(generics.ListAPIView):
-    queryset = Product.objects.all().order_by('-date_posted')
     serializer_class = ProductSerializer
-    permission_classes = [permissions.AllowAny]  # No login required
+    permission_classes = [permissions.AllowAny]
 
+    def get_queryset(self):
+        queryset = Product.objects.all().order_by("-date_posted")
+        group = self.request.query_params.get("group")
+        if group:
+            queryset = queryset.filter(group=group)
+        return queryset
 
-# Public: Retrieve single product for buyers
+# Public: single product (using product_code instead of id)
 class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [permissions.AllowAny]  # No login required
+    permission_classes = [permissions.AllowAny]
+    lookup_field = "product_code"
+
+# Distinct filter options API
+class ProductFiltersView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        collections = Product.objects.values_list("collection", flat=True).distinct()
+        colors = Product.objects.values_list("color", flat=True).distinct()
+        sizes = Product.objects.values_list("size", flat=True).distinct()
+        prices = Product.objects.values_list("price", flat=True).distinct()
+        return Response({
+            "collections": [c for c in collections if c],
+            "colors": [c for c in colors if c],
+            "sizes": [s for s in sizes if s],
+            "prices": prices,
+        })
+
     
     
 class CartViewSet(viewsets.ViewSet):
@@ -68,17 +92,16 @@ class CartViewSet(viewsets.ViewSet):
 
     def list(self, request):
         cart, _ = Cart.objects.get_or_create(buyer=request.user)
-        serializer = CartSerializer(cart)
+        serializer = CartSerializer(cart, context={"request": request})
         return Response(serializer.data)
 
     def create(self, request):
-        product_id = request.data.get("product_id")
+        product_code = request.data.get("product_code")
         quantity = int(request.data.get("quantity", 1))
 
-        product = get_object_or_404(Product, id=product_id)
+        product = get_object_or_404(Product, product_code=product_code)
         cart, _ = Cart.objects.get_or_create(buyer=request.user)
 
-        # either get existing cart item or create new
         cart_item, created = CartItem.objects.get_or_create(
             cart=cart,
             product=product,
@@ -89,7 +112,7 @@ class CartViewSet(viewsets.ViewSet):
             cart_item.quantity += quantity
             cart_item.save()
 
-        serializer = CartSerializer(cart)
+        serializer = CartSerializer(cart, context={"request": request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, pk=None):
@@ -100,7 +123,7 @@ class CartViewSet(viewsets.ViewSet):
         cart_item.quantity = quantity
         cart_item.save()
 
-        serializer = CartSerializer(cart)
+        serializer = CartSerializer(cart, context={"request": request})
         return Response(serializer.data)
 
     def destroy(self, request, pk=None):
@@ -108,8 +131,9 @@ class CartViewSet(viewsets.ViewSet):
         cart_item = get_object_or_404(CartItem, cart=cart, id=pk)
         cart_item.delete()
 
-        serializer = CartSerializer(cart)
+        serializer = CartSerializer(cart, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 @api_view(["POST"])
@@ -169,3 +193,28 @@ def payment_view(request):
         )
 
     return Response(res_data, status=response.status_code)
+
+
+
+
+# Buyer posts a contact message
+class ContactUsCreateView(generics.CreateAPIView):
+    queryset = ContactUs.objects.all()
+    serializer_class = ContactUsSerializer
+    permission_classes = [permissions.AllowAny]  # anyone can submit
+
+# Admin views all contact messages
+class ContactUsListView(generics.ListAPIView):
+    queryset = ContactUs.objects.all()
+    serializer_class = ContactUsSerializer
+    permission_classes = [permissions.IsAdminUser]  # only admin can view
+    
+    
+class ProfileView(generics.RetrieveAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+

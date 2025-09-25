@@ -2,6 +2,8 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import *
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     # Buyer registration
@@ -13,13 +15,14 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"), # refresh token
     
     
-    # Admin
+  # Admin
     path("product/create/", ProductCreateView.as_view(), name="product-create"),
-    path("products/admin/<int:pk>/", ProductDetailAdminView.as_view(), name="product-detail-admin"),
+    path("products/admin/<str:product_code>/", ProductDetailAdminView.as_view(), name="product-detail-admin"),
 
-    # Buyer / Public
+    # Public
     path("products/", ProductListView.as_view(), name="product-list"),
-    path("products/<int:pk>/", ProductDetailView.as_view(), name="product-detail"),
+    path("products/<str:product_code>/", ProductDetailView.as_view(), name="product-detail"),
+    path("products/filters/", ProductFiltersView.as_view(), name="product-filters"),
     
     
     # Cart (Buyer only)
@@ -27,7 +30,15 @@ urlpatterns = [
     path("cart/<int:pk>/", CartViewSet.as_view({"put": "update", "delete": "destroy"}), name="cart-item"),
     
     
+    path('contact/', ContactUsCreateView.as_view(), name='contact-create'),
+    path('contact/list/', ContactUsListView.as_view(), name='contact-list'),
+    
+    path("profile/", ProfileView.as_view(), name="profile"),
+    
     path("payment/", views.payment_view, name="payment"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

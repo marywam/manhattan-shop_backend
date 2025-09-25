@@ -84,39 +84,56 @@ class LoginSerializer(serializers.Serializer):
         
 
 class ProductSerializer(serializers.ModelSerializer):
-    discounted_price = serializers.SerializerMethodField()
+    discount_percentage = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = [
-            "id",
+            "product_code",
             "name",
+            "group",
+            "collection",
+            "color",
+            "size",
+            "price",
+            "discount_price",
+            "discount_percentage",
+            "stock",
+            "best_seller",
+            "description",
             "image1",
             "image2",
             "image3",
             "image4",
-            "price",
-            "discount",
-            "discounted_price",
-            "description",
             "date_posted",
         ]
 
-    def get_discounted_price(self, obj):
-        if obj.discount is not None and obj.discount > 0:
-            return obj.price - (obj.price * obj.discount / 100)
+    def get_discount_percentage(self, obj):
+        return obj.discount_percentage
+    
+class ProductMiniSerializer(serializers.ModelSerializer):
+    image1 = serializers.SerializerMethodField()
+    class Meta:
+        model = Product
+        fields = ["id", "name", "price", "discount_price", "stock", "image1"]
+        
+    def get_image1(self, obj):
+        request = self.context.get("request")
+        if obj.image1 and request:
+            return request.build_absolute_uri(obj.image1.url)
         return None
+
     
     
 class CartItemSerializer(serializers.ModelSerializer):
-    product = ProductSerializer(read_only=True)
-    product_id = serializers.PrimaryKeyRelatedField(
+    product = ProductMiniSerializer(read_only=True)
+    product_code = serializers.PrimaryKeyRelatedField(
         queryset=Product.objects.all(), source="product", write_only=True
     )
 
     class Meta:
         model = CartItem
-        fields = ["id", "product", "product_id", "quantity", "total_price"]
+        fields = ["id", "product", "product_code", "quantity", "total_price"]
 
 
 class CartSerializer(serializers.ModelSerializer):
@@ -126,4 +143,25 @@ class CartSerializer(serializers.ModelSerializer):
         model = Cart
         fields = ["id", "buyer", "items", "created_at"]
         read_only_fields = ["buyer", "created_at"]
+        
+class ContactUsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactUs
+        fields = '__all__'
+        
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "phone_number",
+            "date_of_birth",
+            "county",
+        ]
+
 

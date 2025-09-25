@@ -28,23 +28,27 @@ class CustomUserAdmin(UserAdmin):
 admin.site.register(User, CustomUserAdmin)
 
 
+@admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("name", "price", "discount", "date_posted", "posted_by")
-    readonly_fields = ("date_posted", "posted_by")  # cannot edit these manually
-    list_filter = ("date_posted",)
-    search_fields = ("name", "description")
-    
-    # Automatically set posted_by to the logged-in admin
+    list_display = (
+    "product_code",
+        "name",
+        "group",
+        "price",
+          "discount_price",
+        "discount_percentage",
+        "stock",
+        "best_seller",
+        "date_posted",
+        "posted_by",
+    )
+    list_filter = ("group", "collection", "color", "size", "best_seller")
+    search_fields = ("name", "description", "product_code")
+
     def save_model(self, request, obj, form, change):
-        if not obj.pk:  # Only set on creation
+        if not obj.pk:
             obj.posted_by = request.user
         super().save_model(request, obj, form, change)
-
-    # Optional: prevent deletion if needed (but currently allowed)
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_staff and request.user.is_superuser
-
-admin.site.register(Product, ProductAdmin)
 
 
 
@@ -73,3 +77,10 @@ class CartItemAdmin(admin.ModelAdmin):
 
 
 admin.site.register(CartItem, CartItemAdmin)
+
+
+@admin.register(ContactUs)
+class ContactUsAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'phone_number', 'message', 'created_at')
+    search_fields = ('full_name', 'phone_number', 'message')
+    list_filter = ('created_at',)
