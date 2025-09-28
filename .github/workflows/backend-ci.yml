@@ -44,6 +44,7 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/manhattan-backend:${{ github.ref_name }}
             docker stop backend || true
             docker rm backend || true
+
             docker run -d --name backend -p 8000:8000 \
               -e SECRET_KEY=${{ secrets.SECRET_KEY }} \
               -e DEBUG=False \
@@ -61,8 +62,8 @@ jobs:
               -e MPESA_BASE_URL=${{ secrets.MPESA_BASE_URL }} \
               ${{ secrets.DOCKER_USERNAME }}/manhattan-backend:${{ github.ref_name }}
 
-              # Run migrations inside the container
-             docker exec backend python manage.py migrate --noinput
+            # Run migrations inside the container
+            docker exec backend python manage.py migrate --noinput
 
-            # (Optional) collect static files
+            # Collect static files
             docker exec backend python manage.py collectstatic --noinput
