@@ -63,8 +63,3 @@ jobs:
               ${{ secrets.DOCKER_USERNAME }}/manhattan-backend:${{ github.ref_name }}
 
 
-            # Run migrations inside the container
-            docker exec backend python shoptech/manage.py migrate --noinput
-
-            # Collect static files
-            docker exec backend python shoptech/manage.py collectstatic --noinput

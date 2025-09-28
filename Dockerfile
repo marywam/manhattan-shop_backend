@@ -9,8 +9,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy app code
 COPY . .
 
+# Copy entrypoint
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 8000
 
-# Run collectstatic at container startup
-CMD python shoptech/manage.py collectstatic --noinput && \
-    gunicorn shoptech.wsgi:application --bind 0.0.0.0:8000
+# Use entrypoint
+CMD ["/entrypoint.sh"]
