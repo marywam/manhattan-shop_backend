@@ -46,21 +46,22 @@ jobs:
             docker rm backend || true
 
             docker run -d --name backend -p 8000:8000 \
-              -e SECRET_KEY=${{ secrets.SECRET_KEY }} \
-              -e DEBUG=False \
-              -e ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} \
-              -e DB_NAME=${{ secrets.DB_NAME }} \
-              -e DB_USER=${{ secrets.DB_USER }} \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e DB_HOST=${{ secrets.DB_HOST }} \
-              -e DB_PORT=${{ secrets.DB_PORT }} \
-              -e CONSUMER_KEY=${{ secrets.CONSUMER_KEY }} \
-              -e CONSUMER_SECRET=${{ secrets.CONSUMER_SECRET }} \
-              -e MPESA_PASSKEY=${{ secrets.MPESA_PASSKEY }} \
-              -e BUSINESS_SHORTCODE=${{ secrets.BUSINESS_SHORTCODE }} \
-              -e MPESA_CALLBACK_URL=${{ secrets.MPESA_CALLBACK_URL }} \
-              -e MPESA_BASE_URL=${{ secrets.MPESA_BASE_URL }} \
+              -e "SECRET_KEY=${{ secrets.SECRET_KEY }}" \
+              -e "DEBUG=False" \
+              -e "ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}" \
+              -e "DB_NAME=${{ secrets.DB_NAME }}" \
+              -e "DB_USER=${{ secrets.DB_USER }}" \
+              -e "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" \
+              -e "DB_HOST=${{ secrets.DB_HOST }}" \
+              -e "DB_PORT=${{ secrets.DB_PORT }}" \
+              -e "CONSUMER_KEY=${{ secrets.CONSUMER_KEY }}" \
+              -e "CONSUMER_SECRET=${{ secrets.CONSUMER_SECRET }}" \
+              -e "MPESA_PASSKEY=${{ secrets.MPESA_PASSKEY }}" \
+              -e "BUSINESS_SHORTCODE=${{ secrets.BUSINESS_SHORTCODE }}" \
+              -e "MPESA_CALLBACK_URL=${{ secrets.MPESA_CALLBACK_URL }}" \
+              -e "MPESA_BASE_URL=${{ secrets.MPESA_BASE_URL }}" \
               ${{ secrets.DOCKER_USERNAME }}/manhattan-backend:${{ github.ref_name }}
+
 
             # Run migrations inside the container
             docker exec backend python manage.py migrate --noinput
