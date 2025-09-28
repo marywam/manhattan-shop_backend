@@ -64,7 +64,7 @@ jobs:
 
 
             # Run migrations inside the container
-            docker exec backend python manage.py migrate --noinput
+            docker exec backend python shoptech/manage.py migrate --noinput
 
             # Collect static files
-            docker exec backend python manage.py collectstatic --noinput
+            docker exec backend python shoptech/manage.py collectstatic --noinput
