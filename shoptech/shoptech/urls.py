@@ -16,11 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from shoptechApp import views 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('shoptechApp.urls')), 
-    
-    # MPESA / Daraja provided URLs
-    path('mpesa/', include('django_daraja.urls')), 
+    path("test-env/", views.test_env, name="test-env"),
 ]

@@ -5,6 +5,29 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
+
+order_list = OrderViewSet.as_view({
+    "get": "list",
+})
+
+order_detail = OrderViewSet.as_view({
+    "get": "retrieve",
+})
+
+order_create_from_cart = OrderViewSet.as_view({
+    "post": "create_from_cart",
+})
+
+address_list = CustomerAddressViewSet.as_view({
+    "get": "list",
+    "post": "create",
+})
+address_detail = CustomerAddressViewSet.as_view({
+    "get": "retrieve",
+    "put": "update",
+    "patch": "partial_update",
+    "delete": "destroy",
+})
 urlpatterns = [
     # Buyer registration
     path("register/", BuyerRegisterView.as_view(), name="register"),
@@ -35,7 +58,26 @@ urlpatterns = [
     
     path("profile/", ProfileView.as_view(), name="profile"),
     
-    path("payment/", views.payment_view, name="payment"),
+    # Orders (Buyer only)
+     # Orders (Buyer only)
+    path("orders/", order_list, name="order-list"),  
+    path("orders/<int:pk>/", order_detail, name="order-detail"),  
+    path("orders/create_from_cart/", order_create_from_cart, name="order-create-from-cart"),
+    
+    
+    # Order payment status endpoints
+    path('orders/<int:order_id>/payment-status/', views.check_payment_status, name='check_payment_status'),
+    path('orders/<int:order_id>/success/', views.order_success, name='order_success'),
+    
+    
+    path("addresses/", address_list, name="address-list"),
+    path("addresses/<int:pk>/", address_detail, name="address-detail"),
+    
+    path("mpesa/pay/", mpesa_payment_view, name="mpesa-pay"),
+    path("mpesa/callback/", mpesa_callback, name="mpesa-callback"),
+    path("mpesa/testcredentials/", test_mpesa_credentials, name = "test_mpesa_credentials"),
+    # In your urls.py
+    path("mpesa/simulate-success/", simulate_successful_payment, name="mpesa-simulate-success"),
 ]
 
 if settings.DEBUG:

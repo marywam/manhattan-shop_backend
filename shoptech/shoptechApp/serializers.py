@@ -164,4 +164,38 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "county",
         ]
 
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = ProductMiniSerializer(read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ["id", "product", "quantity", "price", "total_price"]
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
+    buyer = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ["id", "buyer", "status", "total_price", "created_at", "items"]
+        
+class CustomerAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerAddress
+        fields = [
+            "id",
+            "buyer",
+            "first_name",
+            "last_name",
+            "contact",
+            "county",
+            "city",
+            "address",
+            "apartment",
+            "postal_code",
+            "phone",
+            "created_at",
+        ]
+        read_only_fields = ["buyer", "created_at"]
 

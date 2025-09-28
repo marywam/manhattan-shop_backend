@@ -84,3 +84,69 @@ class ContactUsAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'phone_number', 'message', 'created_at')
     search_fields = ('full_name', 'phone_number', 'message')
     list_filter = ('created_at',)
+    
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ("total_price",)
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ("id", "buyer", "status", "total_price", "created_at")
+    list_filter = ("status", "created_at")
+    search_fields = ("buyer__email",)
+    inlines = [OrderItemInline]
+
+
+admin.site.register(OrderItem)
+
+    
+    
+@admin.register(CustomerAddress)
+class CustomerAddressAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "buyer",
+        "first_name",
+        "last_name",
+        "city",
+        "county",
+        "phone",
+        "created_at",
+    )
+    list_filter = ("county", "city", "created_at")
+    search_fields = (
+        "first_name",
+        "last_name",
+        "contact",
+        "city",
+        "address",
+        "postal_code",
+        "phone",
+        "buyer__username",
+        "buyer__email",
+    )
+    ordering = ("-created_at",)
+    readonly_fields = ("created_at",)
+
+    fieldsets = (
+        (None, {
+            "fields": (
+                "buyer",
+                "first_name",
+                "last_name",
+                "contact",
+                "county",
+                "city",
+                "address",
+                "apartment",
+                "postal_code",
+                "phone",
+                "created_at",
+            )
+        }),
+    )
+
+
+admin.site.register(Transaction)

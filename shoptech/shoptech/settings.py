@@ -27,7 +27,7 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -156,3 +156,21 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 STATIC_URL = "/static/"
+
+
+# Mpesa settings
+MPESA_CONSUMER_KEY = config("CONSUMER_KEY")
+MPESA_CONSUMER_SECRET = config("CONSUMER_SECRET")
+MPESA_PASSKEY = config("MPESA_PASSKEY")
+MPESA_SHORTCODE = config("BUSINESS_SHORTCODE")
+MPESA_CALLBACK_URL = config("MPESA_CALLBACK_URL")
+MPESA_BASE_URL = config("MPESA_BASE_URL", default="https://sandbox.safaricom.co.ke")
+
+
+
+
+# Debug M-Pesa settings (remove in production)
+print(f"🔍 M-Pesa Consumer Key: {MPESA_CONSUMER_KEY[:10]}...")
+print(f"🔍 M-Pesa Base URL: {MPESA_BASE_URL}")
+print(f"🔍 M-Pesa Shortcode: {MPESA_SHORTCODE}")
+print(f"🔍 M-Pesa Callback URL: {MPESA_CALLBACK_URL}")
