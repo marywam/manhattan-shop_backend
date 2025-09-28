@@ -60,3 +60,9 @@ jobs:
               -e MPESA_CALLBACK_URL=${{ secrets.MPESA_CALLBACK_URL }} \
               -e MPESA_BASE_URL=${{ secrets.MPESA_BASE_URL }} \
               ${{ secrets.DOCKER_USERNAME }}/manhattan-backend:${{ github.ref_name }}
+
+              # Run migrations inside the container
+             docker exec backend python manage.py migrate --noinput
+
+            # (Optional) collect static files
+            docker exec backend python manage.py collectstatic --noinput
