@@ -155,6 +155,10 @@ CORS_ALLOW_ALL_ORIGINS = True
 AUTH_USER_MODEL = "shoptechApp.User"
 
 
+
+
+AWS_DEFAULT_ACL = None  # prevents private uploads
+
 # Default local storage (dev)
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 MEDIA_URL = '/media/'
