@@ -155,7 +155,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 AUTH_USER_MODEL = "shoptechApp.User"
 
 
-
+AWS_QUERYSTRING_AUTH = False
 
 AWS_DEFAULT_ACL = None  # prevents private uploads
 
