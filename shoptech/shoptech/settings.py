@@ -161,7 +161,7 @@ AUTH_USER_MODEL = "shoptechApp.User"
 
 AWS_QUERYSTRING_AUTH = False
 
-AWS_DEFAULT_ACL = None  # prevents private uploads
+AWS_DEFAULT_ACL = "public-read"
 
 # Default local storage (dev)
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
