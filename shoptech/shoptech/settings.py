@@ -161,7 +161,7 @@ AUTH_USER_MODEL = "shoptechApp.User"
 
 AWS_QUERYSTRING_AUTH = False
 
-AWS_DEFAULT_ACL = "public-read"
+AWS_DEFAULT_ACL = None  # prevents private uploads
 
 # Default local storage (dev)
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
@@ -178,10 +178,10 @@ if USE_S3:
     # Production: S3 storage
     INSTALLED_APPS += ["storages"]
 
-    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
+    AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="eu-north-1")
     AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
 
     # Media files
