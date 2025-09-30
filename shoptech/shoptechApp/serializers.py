@@ -84,32 +84,48 @@ class LoginSerializer(serializers.Serializer):
         
 
 class ProductSerializer(serializers.ModelSerializer):
+    image1 = serializers.SerializerMethodField()
+    image2 = serializers.SerializerMethodField()
+    image3 = serializers.SerializerMethodField()
+    image4 = serializers.SerializerMethodField()
     discount_percentage = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = [
-            "product_code",
-            "name",
-            "group",
-            "collection",
-            "color",
-            "size",
-            "price",
-            "discount_price",
-            "discount_percentage",
-            "stock",
-            "best_seller",
-            "description",
-            "image1",
-            "image2",
-            "image3",
-            "image4",
-            "date_posted",
+            "product_code", "name", "group", "collection", "color", "size",
+            "price", "discount_price", "discount_percentage", "stock",
+            "best_seller", "description", "image1", "image2", "image3", "image4",
+            "date_posted"
         ]
+
+    def get_image1(self, obj):
+        request = self.context.get("request")
+        if obj.image1 and request:
+            return request.build_absolute_uri(obj.image1.url)
+        return None
+
+    def get_image2(self, obj):
+        request = self.context.get("request")
+        if obj.image2 and request:
+            return request.build_absolute_uri(obj.image2.url)
+        return None
+
+    def get_image3(self, obj):
+        request = self.context.get("request")
+        if obj.image3 and request:
+            return request.build_absolute_uri(obj.image3.url)
+        return None
+
+    def get_image4(self, obj):
+        request = self.context.get("request")
+        if obj.image4 and request:
+            return request.build_absolute_uri(obj.image4.url)
+        return None
 
     def get_discount_percentage(self, obj):
         return obj.discount_percentage
+
     
 class ProductMiniSerializer(serializers.ModelSerializer):
     image1 = serializers.SerializerMethodField()

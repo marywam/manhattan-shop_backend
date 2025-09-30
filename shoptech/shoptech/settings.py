@@ -155,13 +155,36 @@ CORS_ALLOW_ALL_ORIGINS = True
 AUTH_USER_MODEL = "shoptechApp.User"
 
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+# Default local storage (dev)
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # <-- add this
 
+# AWS S3 configuration (production)
+USE_S3 = config('USE_S3', default=False, cast=bool)
 
+if USE_S3:
+    # Production: S3 storage
+    INSTALLED_APPS += ["storages"]
+
+    AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="eu-north-1")
+    AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+
+    # Media files
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+
+else:
+    # Development: Local storage
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+    
 # Mpesa settings
 MPESA_CONSUMER_KEY = config("CONSUMER_KEY")
 MPESA_CONSUMER_SECRET = config("CONSUMER_SECRET")
