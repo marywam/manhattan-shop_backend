@@ -21,7 +21,6 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -33,6 +32,15 @@ jobs:
           IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/manhattan-backend:${{ github.ref_name }}
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: ${{ secrets.DOCKER_USERNAME }}/manhattan-backend:${{ github.ref_name }}
+          format: 'table'
+          ignore-unfixed: true
+          exit-code: '0'   # Do not fail pipeline
+          vuln-type: 'os,library'
 
       - name: Deploy to AWS
         uses: appleboy/ssh-action@v0.1.8
@@ -64,6 +72,3 @@ jobs:
               -e "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
               -e "AWS_DEFAULT_REGION=${{ secrets.AWS_DEFAULT_REGION }}" \
               ${{ secrets.DOCKER_USERNAME }}/manhattan-backend:${{ github.ref_name }}
-
-
-
